@@ -1,6 +1,8 @@
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 128K
+    /* オリジナルはFLASHの0x08000000だけど、そこから書き込んでしまうと
+       DFUのローダ部を上書きしてしまうので0x08003000からにずらす。 */
+    FLASH (rx) : ORIGIN = 0x08003000, LENGTH = 128K
     SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
 
