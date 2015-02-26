@@ -70,6 +70,8 @@ $FILE "kernel_cfg.h"$
 #define TOPPERS_KERNEL_CFG_H$NL$
 $NL$
 #define TNUM_TSKID	$LENGTH(TSK.ID_LIST)$$NL$
+#define TNUM_FLGID	$LENGTH(FLG.ID_LIST)$$NL$
+#define TNUM_DTQID	$LENGTH(DTQ.ID_LIST)$$NL$
 #define TNUM_CYCID	$LENGTH(CYC.ORDER_LIST)$$NL$
 #define TNUM_ALMID	$LENGTH(ALM.ORDER_LIST)$$NL$
 $NL$
@@ -84,9 +86,15 @@ $FOREACH id SORT(TSK.ORDER_LIST, "TSK.ATSKPRI")$
 	$reallocate_tskapri[TSK.TSKID[id]] = tsk_index$
 	#define $TSK.TSKID[id]$	$tsk_index$$NL$
 
-$	DEF_EPRI で定義されていないタスクの実行時優先度が，起動優先度と同じになるようにする．
-	$tsk_epri_list = APPEND(tsk_epri_list, ALT(TSK.ETSKPRI[TSK.TSKID[id]], TSK.ATSKPRI[TSK.TSKID[id]]))$
+$	DEF_EPR で定義されていないタスクの実行時優先度が，起動優先度と同じになるようにする．
+	$tsk_epri_list = APPEND(tsk_epri_list, ALT(TSK.EXEPRI[TSK.TSKID[id]], TSK.ATSKPRI[TSK.TSKID[id]]))$
 	$tsk_index = tsk_index + 1$
+$END$
+$FOREACH id FLG.ID_LIST$
+	#define $id$	$+id$$NL$
+$END$
+$FOREACH id DTQ.ID_LIST$
+	#define $id$	$+id$$NL$
 $END$
 $FOREACH id CYC.ID_LIST$
 	#define $id$	$+id$$NL$
@@ -133,6 +141,12 @@ $IF USE_EXTERNAL_ID$
 	$FOREACH id TSK.ID_LIST$
 		const ID $id$_id$SPC$=$SPC$$+id$;$NL$
 	$END$
+	$FOREACH id FLG.ID_LIST$
+		const ID $id$_id$SPC$=$SPC$$+id$;$NL$
+	$END$
+	$FOREACH id DTQ.ID_LIST$
+		const ID $id$_id$SPC$=$SPC$$+id$;$NL$
+	$END$
 	$FOREACH id CYC.ID_LIST$
 		const ID $id$_id$SPC$=$SPC$$+id$;$NL$
 	$END$
@@ -161,6 +175,16 @@ $NL$
 $ ---------------------------------------------------------------------
 $  タスクに関する出力
 $ ---------------------------------------------------------------------
+
+$ 
+$ 実行時優先度のコンフィギュレーションに成功したかどうか
+$
+$ DEF_EPR 処理中にエラーが発生した場合，この変数が0になる．
+$ DEF_EPR 処理中にエラーが発生したかどうかを判断して
+$ 特定処理の実行をブロックするために使用する．
+$ 
+$configurated_defepr_successfully = 1$
+
 /*$NL$
 $SPC$*  Task Management Functions$NL$
 $SPC$*/$NL$
@@ -222,24 +246,26 @@ $	// atskpri は重複がない．（E_PAR）
 	$END$
 $END$
 
-$ 実行時優先度(etskpri)．
+$ 実行時優先度(exepri)．
 const uint_t  	_kernel_tinib_epriority[TNUM_TSKID] = {
 $epri_allocated = 0$
 $tsk_index = 0$
 $JOINEACH tskid tsk_apriorder_list ","$
 	$epri = AT(tsk_epri_list, tsk_index)$
 
-$	// etskpri は TMIN_TPRI 以上である．(E_PAR)
-	$IF TMIN_TPRI > epri$
-		$ERROR TSK.TEXT_LINE[tskid]$E_PAR: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "etskpri", epri, tskid, "CRE_TSK")$$END$
+$	// exepri は TMIN_TPRI 以上かつ TMAX_TPRI 以下である．(E_PAR)
+	$IF TMIN_TPRI > epri || TMAX_TPRI < epri$
+		$configurated_defepr_successfully = 0$
+		$ERROR TSK.TEXT_LINE[tskid]$E_PAR: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "exepri", epri, tskid, "DEF_EPR")$$END$
 	$END$
 
-$	// etskpri は atskpri 以下の値をもつ(優先度としては同じかそれより高い)．(E_PAR)
-	$IF epri > TSK.ATSKPRI[tskid]$
-		$ERROR TSK.TEXT_LINE[tskid]$E_PAR: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "etskpri", epri, tskid, "CRE_TSK")$$END$
+$	// exepri は atskpri 以下の値をもつ(優先度としては同じかそれより高い)．(E_ILUSE)
+	$IF epri <= TMAX_TPRI && epri > TSK.ATSKPRI[tskid]$
+		$configurated_defepr_successfully = 0$
+		$ERROR TSK.TEXT_LINE[tskid]$E_ILUSE: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "exepri", epri, tskid, "DEF_EPR")$$END$
 	$END$
 
-$	// etskpri の内部表現を決定し reallocate_tskepri に格納．
+$	// exepri の内部表現を決定し reallocate_tskepri に格納．
 	$FOREACH tskid2 tsk_apriorder_list $
 	 	$IF epri_allocated != 1 && epri <= TSK.ATSKPRI[tskid2]$
 			INT_PRIORITY($reallocate_tskapri[TSK.TSKID[tskid2]]$)
@@ -253,19 +279,8 @@ $END$
 };$NL$$NL$
 
 $ 
-$ // 優先度割り当てに関する結果を標準出力へ表示
+$ // 優先度割り当て結果を出力
 $ 
-$FILE "stdout"$
-=====================================$NL$
-Task priority configuration result:$NL$
-$FOREACH tskid SORT(TSK.ORDER_LIST, "TSK.ATSKPRI")$
-	$TAB$$TSK.TSKID[tskid]$:$TAB$ IPRI = $reallocate_tskapri[TSK.TSKID[tskid]]$, EXEPRI = $reallocate_tskepri[tskid]$$NL$
-$END$
-=====================================$NL$
-$ 
-$ // 出力先をファイルに戻し，優先度割り当て結果を出力
-$ 
-$FILE "kernel_cfg.c"$
 /*$NL$
 $SPC$* Task priority configuration result:$NL$
 $FOREACH tskid SORT(TSK.ORDER_LIST, "TSK.ATSKPRI")$
@@ -424,7 +439,8 @@ $END$
 $ // 確認
 $SPC$* List of Estimated Total Stack Sizes of Tasks = $stksz_estimated$$NL$
 $SPC$* Estimated Maximum Total Stack Size of Tasks = $max_tsk_stksz$$NL$
-$SPC$*/ $NL$$NL$
+$SPC$*/ $NL$
+#define TOPPERS_TSTKSZ		($max_tsk_stksz$)$NL$$NL$
 
 
 $ 全ての処理単位のスタックは共有される．
@@ -439,6 +455,126 @@ $	// 常に NULL である．(E_PAR)
 	$END$
 $END$
 
+$ ---------------------------------------------------------------------
+$  イベントフラグ
+$ ---------------------------------------------------------------------
+/*$NL$
+$SPC$*  Eventflag Functions$NL$
+$SPC$*/$NL$
+$NL$
+
+$ エントリが (UINT8_MAX - TMIN_FLGID)個より多い場合は，エラーとする --> 現時点ではコメントアウト
+$ $IF LENGTH(ALM.ORDER_LIST) > (UINT8_MAX - TMIN_FLGID)$
+$ 	$ERROR$$FORMAT("The number of CRE_FLG must be equal to or less than (UINT8_MAX - TMIN_FLGID).")$$END$
+$ $END$
+
+$ イベントフラグID番号の最大値
+const ID _kernel_tmax_flgid = (TMIN_FLGID + TNUM_FLGID - 1);$NL$
+$NL$
+
+$ イベントフラグ初期化ブロックの生成
+$IF LENGTH(FLG.ID_LIST)$
+
+$	イベントフラグ属性
+	const ATR _kernel_flginib_atr[TNUM_FLGID] = {
+		$JOINEACH flgid FLG.ORDER_LIST ","$
+$			// flgatrが（［TA_CLR］）でない場合（E_RSATR）
+			$IF (FLG.FLGATR[flgid] & ~(TA_CLR)) != 0$
+				$ERROR FLG.TEXT_LINE[flgid]$E_RSATR: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "flgatr", FLG.FLGATR[flgid], flgid, "CRE_FLG")$$END$
+			$END$
+			($FLG.FLGATR[flgid]$)
+		$END$
+	};$NL$
+	
+$	イベントフラグパターンの初期値
+	const FLGPTN _kernel_flginib_iflgptn[TNUM_FLGID] = {
+		$JOINEACH flgid FLG.ORDER_LIST ","$
+			($FLG.IFLGPTN[flgid]$)
+		$END$
+	};$NL$
+
+$       // イベントフラグの現在のフラグパターンを格納する変数
+        FLGPTN _kernel_flgcb_flgptn[TNUM_FLGID];$NL$
+$ELSE$
+        TOPPERS_EMPTY_LABEL(const ATR, _kernel_flginib_atr);$NL$
+        TOPPERS_EMPTY_LABEL(const FLGPTN, _kernel_flginib_iflgptn);$NL$
+        TOPPERS_EMPTY_LABEL(FLGPTN, _kernel_flgcb_flgptn);$NL$
+$END$
+$NL$
+
+$ ---------------------------------------------------------------------
+$  データキュー
+$ ---------------------------------------------------------------------
+/*$NL$
+$SPC$*  Dataqueue Functions$NL$
+$SPC$*/$NL$
+$NL$
+
+$ データキューID番号の最大値
+const ID _kernel_tmax_dtqid = (TMIN_DTQID + TNUM_DTQID - 1);$NL$
+$NL$
+
+$IF LENGTH(DTQ.ID_LIST)$
+        $FOREACH dtqid DTQ.ORDER_LIST$
+$               // dtqatrが TA_NULL でない場合（E_RSATR）
+                $IF (DTQ.DTQATR[dtqid] != TA_NULL) $
+                        $ERROR DTQ.TEXT_LINE[dtqid]$E_RSATR: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "dtqatr", DTQ.DTQATR[dtqid], dtqid, "CRE_DTQ")$$END$
+                $END$
+
+$               // dtqmbがNULLでない場合（E_NOSPT）
+                $IF !EQ(DTQ.DTQMB[dtqid], "NULL")$
+                        $ERROR DTQ.TEXT_LINE[dtqid]$E_NOSPT: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "dtqmb", DTQ.DTQMB[dtqid], dtqid, "CRE_DTQ")$$END$
+                $END$
+
+$               // dtqcntが0である場合
+                $IF EQ(+DTQ.DTQCNT[dtqid], 0)$
+                        $ERROR DTQ.TEXT_LINE[dtqid]$E_PAR: $FORMAT(_("illegal %1% `%2%\' of `%3%\' in %4%"), "dtqmb", DTQ.DTQCNT[dtqid], dtqid, "CRE_DTQ")$$END$
+                $END$
+				
+
+$               // データキュー領域
+                $IF DTQ.DTQCNT[dtqid]$
+                        static intptr_t _kernel_dtqmb_$dtqid$[$DTQ.DTQCNT[dtqid]$];$NL$
+                $END$
+        $END$
+
+$       // データキュー初期化ブロックの生成(属性)
+        const ATR _kernel_dtqinib_atr[TNUM_DTQID] = {
+        	$JOINEACH dtqid DTQ.ORDER_LIST ",\n"$
+            	$SPC$($DTQ.DTQATR[dtqid]$)
+        	$END$
+        };$NL$
+        $NL$
+
+$       // データキュー初期化ブロックの生成(サイズ)
+        const uint8_t _kernel_dtqinib_size[TNUM_DTQID] = {
+        	$JOINEACH dtqid DTQ.ORDER_LIST ",\n"$
+            	$SPC$($DTQ.DTQCNT[dtqid]$)
+        	$END$
+        };$NL$
+        $NL$
+
+$       // データキュー初期化ブロックの生成(管理領域)
+        intptr_t * const _kernel_dtqinib_data[TNUM_DTQID] = {
+        	$JOINEACH dtqid DTQ.ORDER_LIST ",\n"$
+            	$IF DTQ.DTQCNT[dtqid]$(_kernel_dtqmb_$dtqid$)$ELSE$NULL$END$
+        	$END$
+        };$NL$
+        $NL$
+
+$       // データキューコントロールブロック
+        uint8_t _kernel_dtqcb_count[TNUM_DTQID];$NL$
+        uint8_t _kernel_dtqcb_head[TNUM_DTQID];$NL$
+        uint8_t _kernel_dtqcb_tail[TNUM_DTQID];$NL$
+$ELSE$
+        TOPPERS_EMPTY_LABEL(const ATR, _kernel_dtqinib_atr);$NL$
+        TOPPERS_EMPTY_LABEL(intptr_t * const, _kernel_dtqinib_data);$NL$
+        TOPPERS_EMPTY_LABEL(const uint8_t, _kernel_dtqinib_size);$NL$
+        TOPPERS_EMPTY_LABEL(uint8_t, _kernel_dtqcb_count);$NL$
+        TOPPERS_EMPTY_LABEL(uint8_t, _kernel_dtqcb_head);$NL$
+        TOPPERS_EMPTY_LABEL(uint8_t, _kernel_dtqcb_tail);$NL$
+$END$
+$NL$
 
 
 $ ---------------------------------------------------------------------
@@ -709,8 +845,11 @@ $		// ISRを優先度順に呼び出す
 $END$
 $NL$
 
+$ 
 $ 割込み管理機能のための標準的な初期化情報の生成
-$IF !ALT(OMIT_INITIALIZE_INTERRUPT,0)$
+$ 
+$ 割込みハンドラの初期化に必要な情報
+$IF !OMIT_INITIALIZE_INTERRUPT || ALT(USE_INHINIB_TABLE,0)$
 
 $ 割込みハンドラ数
 #define TNUM_INHNO	$LENGTH(INH.ORDER_LIST)$$NL$
@@ -743,8 +882,11 @@ $ELSE$
 	TOPPERS_EMPTY_LABEL(const INHNO, _kernel_inhinib_inhno);$NL$
 	TOPPERS_EMPTY_LABEL(const ATR, _kernel_inhinib_inhatr);$NL$
 	TOPPERS_EMPTY_LABEL(const FP, _kernel_inhinib_entry);$NL$
+$END$$NL$
 $END$
-$NL$
+
+$ 割込み要求ラインの初期化に必要な情報
+$IF !OMIT_INITIALIZE_INTERRUPT || ALT(USE_INTINIB_TABLE,0)$ 
 
 $ 割込み要求ライン数
 #define TNUM_INTNO	$LENGTH(INT.ORDER_LIST)$$NL$
@@ -1047,31 +1189,21 @@ $ELSE$
 $END$
 
 $ ---------------------------------------------------------------------
-$  共有スタック領域
-$      SSPではすべての処理単位のスタックを共有するため，
-$      ここでシステム全体のスタック領域を確保する．
+$  非タスクコンテキスト用スタック領域
 $ ---------------------------------------------------------------------
 /*$NL$
-$SPC$*  Stack Area for System$NL$
-$SPC$*/$NL$
-$NL$
+$SPC$*  Interrupt Context Stack Size$NL$
+$SPC$*/$NL$$NL$
 
 $ // 変数定義
-$ // 割り当てられた共有スタック領域のサイズ
-$allocated_stack_size = 0$
+$ // 非タスクコンテキスト用スタック領域のサイズ
+$interrupt_context_stksz = 0$
 
 $ // DEF_ICS のエントリが存在するか?
 $IF !LENGTH(ICS.ORDER_LIST)$
 $	// ない場合．サイズは既定値 (DEFAULT_ISTKSZ) を使う
-$	// 領域の先頭番地の既定値 (DEFALT_ISTK) は使わない方針とする．
-$	// スタック領域の先頭番地を指定する場合は，DEF_ICS を使うこと．
-	#define TOPPERS_ISTKSZ		DEFAULT_ISTKSZ$NL$
-	static STK_T          		_kernel_stack[COUNT_STK_T(TOPPERS_ISTKSZ)];$NL$
-	#define TOPPERS_STK   		_kernel_stack$NL$
-	#define TOPPERS_STKSZ		ROUND_STK_T(TOPPERS_ISTKSZ)$NL$
-	$NL$
-
-	$allocated_stack_size = DEFAULT_ISTKSZ$
+	#define TOPPERS_ISTKSZ		DEFAULT_ISTKSZ$NL$$NL$
+	$interrupt_context_stksz = DEFAULT_ISTKSZ$
 $ELSE$
 $	// DEF_ICS のエントリがある場合
 
@@ -1085,26 +1217,85 @@ $	// 静的API「DEF_ICS」が複数ある（E_OBJ）
 $	// DEF_ICS で0を指定した場合(E_PAR)
 	$IF ICS.ISTKSZ[1] == 0$
 		$ERROR ICS.TEXT_LINE[1]$E_PAR: $FORMAT(_("%1% in %2% is 0"), "istksz", "DEF_ICS")$$END$
-	$ELSE$
-		$allocated_stack_size = ICS.ISTKSZ[1]$
+	$END$
+$	// 常に NULL である．(E_PAR)
+	$IF !EQ(ICS.ISTK[1], "NULL")$
+		$ERROR ICS.TEXT_LINE[1]$E_PAR: $FORMAT(("'%1%' of %2% must be NULL."), "istk", "DEF_ICS")$$END$
 	$END$
 
-	$IF EQ(ICS.ISTK[1], "NULL")$
-$		// スタック領域の自動割付け
-		#define TOPPERS_ISTKSZ		($ICS.ISTKSZ[1]$)$NL$
-		static STK_T				_kernel_stack[COUNT_STK_T(TOPPERS_ISTKSZ)];$NL$
-		#define TOPPERS_STK   		_kernel_stack$NL$
-		#define TOPPERS_STKSZ		ROUND_STK_T(TOPPERS_ISTKSZ)$NL$
+	#define TOPPERS_ISTKSZ		($ICS.ISTKSZ[1]$)$NL$
+	$interrupt_context_stksz = ICS.ISTKSZ[1]$
+	$NL$
+$END$
+$NL$
+
+$ ---------------------------------------------------------------------
+$  共有スタック領域
+$      SSPではすべての処理単位のスタックを共有するため，
+$      ここでシステム全体のスタック領域を確保する．
+$ ---------------------------------------------------------------------
+
+$ 
+$ 共有スタックのコンフィギュレーションに成功したかどうか
+$
+$ DEF_STK 処理中にエラーが発生した場合，この変数が0になる．
+$ DEF_STK 処理中にエラーが発生したかどうかを判断して
+$ 特定処理の実行をブロックするために使用する．
+$ 
+$configurated_defstk_successfully = 1$
+
+/*$NL$
+$SPC$*  Stack Area for System$NL$
+$SPC$*/$NL$
+$NL$
+
+$ // 変数定義
+$ // 割り当てられた共有スタック領域のサイズ
+$allocated_stack_size = 0$
+
+$ // DEF_STK のエントリが存在するか?
+$IF !LENGTH(STK.ORDER_LIST)$
+$	// (1) DEF_STK のエントリがない場合
+	static STK_T          		_kernel_stack[COUNT_STK_T(TOPPERS_TSTKSZ+TOPPERS_ISTKSZ)];$NL$
+	#define TOPPERS_STK   		_kernel_stack$NL$
+	#define TOPPERS_STKSZ		ROUND_STK_T(TOPPERS_TSTKSZ+TOPPERS_ISTKSZ)$NL$
+	$NL$
+
+	$allocated_stack_size = max_tsk_stksz + interrupt_context_stksz$
+$ELSE$
+$	// (2) DEF_STK のエントリがある場合
+
+$	// エラーチェック
+$	// 静的API「DEF_STK」が複数ある（E_OBJ）
+	$IF LENGTH(STK.ORDER_LIST) > 1$
+		$configurated_defstk_successfully = 0$
+		$ERROR$E_OBJ: $FORMAT(_("too many %1%"), "DEF_STK")$$END$
+	$END$
+$	// DEF_STK の stksz で 0 を指定した場合(E_PAR)
+	$IF STK.STKSZ[1] == 0$
+		$configurated_defstk_successfully = 0$
+		$ERROR STK.TEXT_LINE[1]$E_PAR: $FORMAT(_("%1% in %2% is 0"), "stksz", "DEF_STK")$$END$
+	$END$
+
+	$IF EQ(STK.STK[1], "NULL")$
+$		// stk が NULL の場合，スタック領域を自動割付け
+		static STK_T         		_kernel_stack[COUNT_STK_T($STK.STKSZ[1]$)];$NL$
+		#define TOPPERS_STK  		_kernel_stack$NL$
+		#define TOPPERS_STKSZ		ROUND_STK_T($STK.STKSZ[1]$)$NL$
 	$ELSE$
-$ 		// istkszがターゲット毎に定まるアライメントサイズの倍数にアライメントされていない場合（E_PAR）
-		$IF LENGTH(CHECK_STKSZ_ALIGN) && (ICS.ISTKSZ[1] & (CHECK_STKSZ_ALIGN - 1))$
-			$ERROR ICS.TEXT_LINE[1]$E_PAR: $FORMAT(_("%1% `%2%\' in %3% is not aligned"), "istksz", ICS.ISTKSZ[1], "DEF_ICS")$$END$
+$		// stk が NULL 以外の場合（アプリ側でスタック領域を用意する場合）
+
+$ 		// stkszがターゲット毎に定まるアライメントサイズの倍数にアライメントされていない場合（E_PAR）
+		$IF LENGTH(CHECK_STKSZ_ALIGN) && (STK.STKSZ[1] & (CHECK_STKSZ_ALIGN - 1))$
+			$configurated_defstk_successfully = 0$
+			$ERROR STK.TEXT_LINE[1]$E_PAR: $FORMAT(_("%1% `%2%\' in %3% is not aligned"), "stksz", STK.STKSZ[1], "DEF_STK")$$END$
 		$END$
 
-		#define TOPPERS_ISTKSZ		($ICS.ISTKSZ[1]$)$NL$
-		#define TOPPERS_STK   		($ICS.ISTK[1]$)$NL$
-		#define TOPPERS_STKSZ		ROUND_STK_T(TOPPERS_ISTKSZ)$NL$
+		#define TOPPERS_STK   		($STK.STK[1]$)$NL$
+		#define TOPPERS_STKSZ		($STK.STKSZ[1]$)$NL$
 	$END$
+
+	$allocated_stack_size = STK.STKSZ[1]$
 $END$
 $NL$
 
@@ -1118,19 +1309,29 @@ STK_T *const	_kernel_istkpt = TOPPERS_ISTKPT(TOPPERS_STK, TOPPERS_STKSZ);$NL$
 $NL$
 
 $ 
-$ // スタック設定に関する結果を標準出力へ表示
+$ // 優先度割り当ておよびスタック設定に関する結果を標準出力へ表示
 $ 
-$FILE "stdout"$
-=====================================$NL$
-Stack size configuration result:$NL$
-$TAB$Estimated task stack size = $max_tsk_stksz$$NL$
-$TAB$Allocated total stack size = $allocated_stack_size$(value=$FORMAT("%d",+allocated_stack_size)$)$NL$
-$ // サイズのチェック．タスクの推定最大サイズが実際に割当てられた共有スタック領域のサイズより大きい場合，警告する．
-$IF max_tsk_stksz > allocated_stack_size$
-	$TAB$!!!WARNING!!!: Estimated task stack size is more than the allocated stack size.$NL$
-	$WARNING ICS.TEXT_LINE[1]$ $FORMAT("The estimated task stack size is more than the allocated stack size.")$$END$
+$IF configurated_defepr_successfully == 1 && configurated_defstk_successfully == 1$
+	$FILE "stdout"$
+	=====================================$NL$
+	Task priority configuration result:$NL$
+	$FOREACH tskid SORT(TSK.ORDER_LIST, "TSK.ATSKPRI")$
+		$TAB$$TSK.TSKID[tskid]$:$TAB$ IPRI = $reallocate_tskapri[TSK.TSKID[tskid]]$, EXEPRI = $reallocate_tskepri[tskid]$$NL$
+	$END$
+	=====================================$NL$
+
+	=====================================$NL$
+	Stack size configuration result:$NL$
+	$TAB$Estimated task stack size = $max_tsk_stksz$$NL$
+	$TAB$Specified interrupt stack size = $interrupt_context_stksz$(value=$FORMAT("%d",+interrupt_context_stksz)$)$NL$
+	$TAB$Allocated total stack size = $allocated_stack_size$(value=$FORMAT("%d",+allocated_stack_size)$)$NL$
+$ 	// サイズのチェック．スタックサイズの推定値が実際に割当てられたサイズより大きい場合，警告する．
+	$IF (max_tsk_stksz+interrupt_context_stksz) > allocated_stack_size$
+		$TAB$!!!WARNING!!!: Estimated stack size is more than the allocated stack size.$NL$
+		$WARNING STK.TEXT_LINE[1]$ $FORMAT("Estimated stack size is more than the allocated stack size.")$$END$
+	$END$
+	=====================================$NL$
 $END$
-=====================================$NL$
 $ 
 $ // 出力先を元に戻しておく
 $ 
@@ -1158,6 +1359,12 @@ $IF LENGTH(CYC.ID_LIST)$
 $END$
 $IF LENGTH(ALM.ID_LIST)$
 	$TAB$_kernel_initialize_alarm();$NL$
+$END$
+$IF LENGTH(FLG.ID_LIST)$
+	$TAB$_kernel_initialize_eventflag();$NL$
+$END$
+$IF LENGTH(DTQ.ID_LIST)$
+	$TAB$_kernel_initialize_dataqueue();$NL$
 $END$
 }$NL$
 $NL$

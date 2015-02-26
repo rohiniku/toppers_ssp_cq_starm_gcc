@@ -15,7 +15,6 @@
 #undef default_exc_handler
 #undef default_int_handler
 #undef x_config_int
-#undef x_clear_int
 #undef prc_initialize
 #undef prc_terminate
 #undef bitpat_cfgint
@@ -42,7 +41,6 @@
 #undef _default_exc_handler
 #undef _default_int_handler
 #undef _x_config_int
-#undef _x_clear_int
 #undef _prc_initialize
 #undef _prc_terminate
 #undef _bitpat_cfgint

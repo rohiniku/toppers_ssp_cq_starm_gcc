@@ -112,6 +112,12 @@ exc_entry:
 	ldr   r1 , [r1]
 	push  {r1}
 	
+	/* 割込みネスト数の加算 */
+	ldr r1 , =intnest
+	ldr r3 , [r1]
+	add r3 , #1
+	str r3 , [r1]
+
 	/*
 	 *  共通処理
 	 */
@@ -135,7 +141,7 @@ exc_entry_2:
 	 *  CPU例外ハンドラの呼び出し
 	 */
 	blx   r2
-	
+
 	/* CPUロックフラグを元に戻す */
 	pop   {r0}
 	ldr   r1 , =lock_flag
@@ -182,15 +188,14 @@ int_entry_2:
 
 #ifdef LOG_INH_ENTER
 	push  {r0,r2,r3}
-	mov   r0, r3                 /* 例外番号をパラメータに  */
-	bl    log_inh_enter          /* log_exc_enterを呼び出す */
+	mov   r0, r3                 /* 割込み番号をパラメータに  */
+	bl    log_inh_enter          /* log_inh_enterを呼び出す */
 	pop   { r0,r2,r3 }
-	push  { r3 }                   /* 例外番号をスタックへ    */
 #endif /* LOG_INH_ENTER */
 
 #ifdef LOG_INH_LEAVE
-	push  { r3 }                   /* 例外番号をスタックへ    */
-#endif /* LOG_INT_LEAVE */
+	push  { r3 }                   /* 割込み番号をスタックへ    */
+#endif /* LOG_INH_LEAVE */
 
 	/*
 	 *  CPU例外ハンドラの呼び出し
@@ -198,8 +203,8 @@ int_entry_2:
 	blx   r2
 	
 #ifdef LOG_INH_LEAVE
-	pop   { r0 }                   /* 例外番号を引数に        */
-	bl    log_inh_leave          /* log_exc_leaveを呼び出す */
+	pop   { r0 }                   /* 割込み番号を引数に        */
+	bl    log_inh_leave          /* log_inh_leaveを呼び出す */
 #endif /* LOG_INH_LEAVE */
 
 /*

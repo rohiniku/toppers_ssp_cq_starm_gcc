@@ -64,10 +64,26 @@
 
 #endif /* TMAX_TPRI == 16 */
 
+#ifndef ALL_STACKSIZE
+#define ALL_STACKSIZE			(2048)
+#endif /* ITSK_STACKSIZE */
+
+#ifndef INTERRUPT_STACKSIZE
+#define INTERRUPT_STACKSIZE		(1024)
+#endif /* INTERRUPT_STACKSIZE */
+
+
+#ifndef TASK_PORTID
+#define	TASK_PORTID		1					/* 文字入力するシリアルポートID */
+#endif /* TASK_PORTID */
+
 #ifndef LOOP_REF
 #define LOOP_REF		ULONG_C(1000000)	/* 速度計測用のループ回数 */
 #endif /* LOOP_REF */
 
+#ifndef STACK_SIZE
+#define STACK_SIZE				(256)
+#endif /* STACK_SIZE */
 
 #ifndef TOPPERS_MACRO_ONLY
 

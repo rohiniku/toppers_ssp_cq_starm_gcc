@@ -5,7 +5,7 @@
 # 
 #  Copyright (C) 2000-2003 by Embedded and Real-Time Systems Laboratory
 #                              Toyohashi Univ. of Technology, JAPAN
-#  Copyright (C) 2004-2007 by Embedded and Real-Time Systems Laboratory
+#  Copyright (C) 2004-2011 by Embedded and Real-Time Systems Laboratory
 #              Graduate School of Information Science, Nagoya Univ., JAPAN
 # 
 #  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -37,10 +37,10 @@
 #  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
 #  の責任を負わない．
 # 
-#  @(#) $Id: makedep 1524 2009-04-29 03:37:27Z ertl-hiro $
+#  @(#) $Id: makedep 2264 2011-10-27 04:22:01Z ertl-hiro $
 # 
 
-use Getopt::Std;	#require "getopt.pl";のかわりにGetopt::Stdを使用する
+use Getopt::Std;
 
 #  オプションの定義
 #
@@ -48,9 +48,13 @@ use Getopt::Std;	#require "getopt.pl";のかわりにGetopt::Stdを使用する
 #  -O <cc_opts>		Cコンパイラ/CPPに渡すオプション
 #  -X				ソースファイルを強制的にCヘッダファイルと見なす
 #
-#  -T <target>		ターゲットのファイル名
-#  -D <t_dir>		ターゲットのディレクトリ名を指定する
-#  -d				ターゲットのディレクトリ部を保持する
+#  -T <target>		ターゲット名（のリスト）
+#  -D <t_dir>		ターゲットのディレクトリ名を指定する（-Tを用いた場
+#					合は無効）
+#  -d				ターゲットのディレクトリ部を保持する（-Tを用いた場
+#					合は無効）
+#  -S				複数のターゲットがある依存ルールを，ターゲット毎に
+#					分割する（こうしないと対応できないmakeがあるらしい）
 #
 #  -R <dirname>		Cygwin環境におけるルートディレクトリ名を指定する
 #					（デフォルトはcygdrive）
@@ -58,13 +62,13 @@ use Getopt::Std;	#require "getopt.pl";のかわりにGetopt::Stdを使用する
 #
 #  オプションの処理
 #
-getopt("COTDR");	#Getopt();のかわりにgetopt()を使用する
+getopt("COTDR");
 
 $cc_path = $opt_C;
 $cc_opts = $opt_O;
 
 if ($opt_T) {
-	$target_file = $opt_T;
+	$target_name = $opt_T;
 }
 elsif ($opt_D) {
 	$target_dir = $opt_D;
@@ -83,9 +87,7 @@ else {
 #
 #  Cygwin環境の判別
 #
-use POSIX;
-@uname = uname();
-if ($uname[0] =~ /^cygwin/i) {
+if ($^O eq 'cygwin') {
 	$cygwin = 1;
 }
 
@@ -93,25 +95,12 @@ if ($uname[0] =~ /^cygwin/i) {
 #  %dependlist に作られた依存関係を出力する
 #
 sub output_dependlist {
-	local($file) = @_;
-	local($target, $column, $len);
+	local($target) = @_;
+	local($column, $len, $file);
 
-	if ($target_file) {
-		$target = $target_file;
-	}
-	else {
-		$target = $file;
-		$target =~ s/(.*)\.(.*)/$1.o/;
-	}	
-	if (defined($target_dir)) {
-		$target =~ s/^.*\/([^\/]+)$/$1/;
-		if ($target_dir) {
-			$target = $target_dir."/".$target;
-		}
-	}
 	print $target, ": ";
 	$column = length($target) + 2;
-    
+
 	foreach $file (keys(%dependlist)) {
 		$len = length($file) + 1;
 		if ($column > 8 && $column + $len >= 70) {
@@ -145,6 +134,7 @@ sub makedepend_one {
 			$filename =~ s/ /\\ /g;
 			if ($filename !~ /^\<.*\>$/ && $filename !~ /\/$/) {
 				if ($cygwin) {
+					$filename =~ s/\\\\/\//g;
 					$filename =~ s/^([a-zA-Z]):/\/$cygwin_root\/$1/;
 				}
 				$dependlist{$filename} = 1;
@@ -163,5 +153,27 @@ sub makedepend_one {
 foreach $file (@ARGV) {
 	%dependlist = ();
 	makedepend_one($file);
-	output_dependlist($file) if (%dependlist);
+	if (%dependlist) {
+		if ($target_name) {
+			if ($opt_S) {
+				foreach $target (split(/[ \t]+/, $target_name)) {
+					output_dependlist($target);
+				}
+			}
+			else {
+				output_dependlist($target_name);
+			}
+		}
+		else {
+			$target = $file;
+			$target =~ s/(.*)\.(.*)/$1.o/;
+			if (defined($target_dir)) {
+				$target =~ s/^.*\/([^\/]+)$/$1/;
+				if ($target_dir) {
+					$target = $target_dir."/".$target;
+				}
+			}
+			output_dependlist($target);
+		}
+	}
 }

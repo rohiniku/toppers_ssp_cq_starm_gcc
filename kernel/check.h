@@ -120,6 +120,10 @@
  */
 #define VALID_TSKID(tskid)	\
 	(((ID)TMIN_TSKID <= (tskid)) && ((ID)(tskid) <= tmax_tskid))
+#define VALID_FLGID(flgid)	\
+	(((ID)TMIN_FLGID <= (flgid)) && ((ID)(flgid) <= tmax_flgid))
+#define VALID_DTQID(dtqid)	\
+	(((ID)TMIN_DTQID <= (dtqid)) && ((ID)(dtqid) <= tmax_dtqid))
 #define VALID_CYCID(cycid)	\
 	((((ID)TMIN_CYCID) <= (cycid)) && ((ID)(cycid) <= tmax_cycid))
 #define VALID_ALMID(almid)	\
@@ -137,6 +141,21 @@
 
 #define CHECK_TSKID_SELF(tskid) {							\
 	if (!(VALID_TSKID(tskid) || ((tskid) == TSK_SELF))) {	\
+		ercd = E_ID;										\
+		goto error_exit;									\
+	}														\
+}
+
+
+#define CHECK_FLGID(flgid) {								\
+	if (!VALID_FLGID(flgid)) {								\
+		ercd = E_ID;										\
+		goto error_exit;									\
+	}														\
+}
+
+#define CHECK_DTQID(dtqid) {								\
+	if (!VALID_DTQID(dtqid)) {								\
 		ercd = E_ID;										\
 		goto error_exit;									\
 	}														\

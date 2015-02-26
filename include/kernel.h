@@ -77,6 +77,7 @@
 typedef	uint_t			INTNO;		/* 割込み番号 */
 typedef	uint_t			INHNO;		/* 割込みハンドラ番号 */
 typedef	uint_t			EXCNO;		/* CPU例外ハンドラ番号 */
+typedef unsigned long	FLGPTN;		/* イベントフラグパターン */
 
 
 /*
@@ -109,6 +110,21 @@ typedef	TOPPERS_STK_T	STK_T;	/* スタック領域を確保するための型 */
  */
 extern ER		act_tsk(ID tskid);
 extern ER		iact_tsk(ID tskid);
+
+/*
+ *  同期・通信機能
+ */
+
+/* データキュー */
+extern ER psnd_dtq(ID dtqid, intptr_t data);
+extern ER ipsnd_dtq(ID dtqid, intptr_t data);
+extern ER prcv_dtq(ID dtqid, intptr_t *p_data);
+
+/* イベントフラグ */
+extern ER set_flg(ID flgid, FLGPTN setptn);
+extern ER iset_flg(ID flgid, FLGPTN setptn);
+extern ER clr_flg(ID flgid, FLGPTN clrptn);
+extern ER pol_flg(ID flgid, FLGPTN waiptn, MODE wfmode, FLGPTN *p_flgptn);
 
 /*
  *  システム状態管理機能
@@ -156,6 +172,8 @@ extern ER		get_tim(SYSTIM *p_systim);
  */
 #define TA_RSTR			UINT_C(0x04)	/* 制約タスク */
 
+#define TA_CLR			UINT_C(0x04)	/* イベントフラグのクリア指定 */
+
 #define TA_ACT			UINT_C(0x02)	/* タスクを起動された状態で生成 */
 
 #define TA_STA			UINT_C(0x02)	/* 周期ハンドラを動作状態で生成 */
@@ -164,6 +182,12 @@ extern ER		get_tim(SYSTIM *p_systim);
 
 #define TA_ENAINT		UINT_C(0x01)	/* 割込み要求禁止フラグをクリア */
 #define TA_EDGE			UINT_C(0x02)	/* エッジトリガ */
+
+/*
+ *  サービスコールの動作モードの定義
+ */
+#define TWF_ORW			UINT_C(0x01)	/* イベントフラグのOR待ち */
+#define TWF_ANDW		UINT_C(0x02)	/* イベントフラグのAND待ち */
 
 /*
  *  その他の定数の定義
@@ -190,7 +214,11 @@ extern ER		get_tim(SYSTIM *p_systim);
 #endif	/* TMAX_TPRI */
 
 #define TMIN_ISRPRI		1			/* 割込みサービスルーチン優先度の最小値 */
-#define TMAX_ISRPRI		16			/* 割込みサービスルーチン優先度の最大値 */
+#ifndef TMAX_ISRPRI
+	#define TMAX_ISRPRI		16			/* 割込みサービスルーチン優先度の最大値 */
+#elif (TMAX_ISRPRI != 8) && (TMAX_ISRPRI != 16)
+	#error "TMAX_ISRPRI must defined 8 or 16."
+#endif	/* TMAX_ISRPRI */
 
 /*
  *  バージョン情報
@@ -198,7 +226,12 @@ extern ER		get_tim(SYSTIM *p_systim);
 #define TKERNEL_MAKER	UINT_C(0x0118)	/* カーネルのメーカーコード */
 #define TKERNEL_PRID	UINT_C(0x0007)	/* カーネルの識別番号 */
 #define TKERNEL_SPVER	UINT_C(0xf511)	/* カーネル仕様のバージョン番号 */
-#define TKERNEL_PRVER	UINT_C(0x1011)	/* カーネルのバージョン番号 */
+#define TKERNEL_PRVER	UINT_C(0x1020)	/* カーネルのバージョン番号 */
+
+/*
+ *  キューイング回数の最大値
+ */
+#define TMAX_ACTCNT		UINT_C(1)		/* 起動要求キューイング数の最大値 */
 
 /*
  *  メモリ領域確保のためのマクロ

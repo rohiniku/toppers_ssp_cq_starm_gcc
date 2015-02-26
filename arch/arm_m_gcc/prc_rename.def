@@ -7,7 +7,6 @@ intnest
 default_exc_handler
 default_int_handler
 x_config_int
-x_clear_int
 prc_initialize
 prc_terminate
 bitpat_cfgint

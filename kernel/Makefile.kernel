@@ -49,7 +49,8 @@
 #
 KERNEL_FCSRCS = startup.c task.c task_manage.c					\
 				interrupt.c exception.c sys_manage.c cyclic.c	\
-				alarm.c time_manage.c time_event.c
+				alarm.c time_manage.c time_event.c \
+				eventflag.c dataqueue.c
 
 #
 #  各ソースファイルから生成されるオブジェクトファイルのリスト
@@ -64,6 +65,10 @@ time_event = tmevtini.o tmevtenq.o tmevtdeq.o sig_tim.o
 task_manage = act_tsk.o iact_tsk.o
 
 time_manage = get_tim.o
+
+eventflag = eventflag.o
+
+dataqueue = dataqueue.o
 
 cyclic = cycini.o sta_cyc.o stp_cyc.o cyccal.o
 
@@ -84,6 +89,8 @@ $(task) $(task:.o=.s) $(task:.o=.d): task.c
 $(time_event) $(time_event:.o=.s) $(time_event:.o=.d): time_event.c
 $(task_manage) $(task_manage:.o=.s) $(task_manage:.o=.d): task_manage.c
 $(time_manage) $(time_manage:.o=.s) $(time_manage:.o=.d): time_manage.c
+$(eventflag) $(eventflag:.o=.s) $(eventflag:.o=.d): eventflag.c
+$(dataqueue) $(dataqueue:.o=.s) $(dataqueue:.o=.d): dataqueue.c
 $(cyclic) $(cyclic:.o=.s) $(cyclic:.o=.d): cyclic.c
 $(alarm) $(alarm:.o=.s) $(alarm:.o=.d): alarm.c
 $(sys_manage) $(sys_manage:.o=.s) $(sys_manage:.o=.d): sys_manage.c

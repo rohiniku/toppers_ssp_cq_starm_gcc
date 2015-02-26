@@ -64,6 +64,8 @@
 #include "time_event.h"
 #include "cyclic.h"
 #include "alarm.h"
+#include "eventflag.h"
+#include "dataqueue.h"
 
 /*
  *  リネームしたシンボルを元に戻すためのヘッダファイル

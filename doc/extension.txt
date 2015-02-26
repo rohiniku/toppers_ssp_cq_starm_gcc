@@ -2,8 +2,8 @@
 		TOPPERS/SSPカーネル
 		拡張パッケージ仕様
 
-		対応バージョン: Release 1.1.1
-		最終更新: 2011年4月29日
+		対応バージョン: Release 1.2.1
+		最終更新: 2013年4月24日
 
 このドキュメントは，TOPPERS/SSPカーネルの機能を拡張するための拡張
 パッケージに付いて記述したものである．
@@ -12,7 +12,7 @@
      TOPPERS/SSP Kernel
          Smallest Set Profile Kernel
  
-     Copyright (C) 2011 by Meika Sugimoto
+     Copyright (C) 2011,2013 by Meika Sugimoto
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -50,6 +50,8 @@
 ・周期ハンドラ機能
 ・アラームハンドラ機能
 ・システム時刻管理機能
+・イベントフラグ機能
+・データキュー機能
 
 時間管理機能を実現するためのタイムイベント管理機能も拡張パッケージ中に
 含んでいる．
@@ -82,6 +84,24 @@
 
 ・get_tim
 
+○イベントフラグ機能
+
+イベントフラグ機能は，以下のサービスコールをサポートしている．
+
+・CRE_DTQ
+・psnd_dtq
+・ipsnd_dtq
+・prcv_dtq
+
+○データキュー機能
+
+データキュー機能は，以下のサービスコールをサポートしている．
+
+・CRE_FLG
+・set_flg
+・iset_flg
+・clr_flg 
+・pol_flg 
 
 ○リファレンス
 
@@ -99,6 +119,20 @@
 
 	ER ercd = get_tim(SYSTIM *p_systim)
 
+(4) イベントフラグ機能
+
+    ER set_flg(ID flgid, FLGPTN setptn);
+    ER iset_flg(ID flgid, FLGPTN setptn);
+    ER clr_flg(ID flgid, FLGPTN clrptn);
+    ER pol_flg(ID flgid, FLGPTN waiptn, MODE wfmode, FLGPTN *p_flgptn);
+
+(5) データキュー機能
+
+    ER psnd_dtq(ID dtqid, intptr_t data);
+    ER ipsnd_dtq(ID dtqid, intptr_t data);
+    ER prcv_dtq(ID dtqid, intptr_t *p_data);
+
+
 ○ 静的API一覧
 
 (1) 周期ハンドラ機能
@@ -109,5 +143,13 @@ CRE_CYC(ID cycid, { ATR cycatr, intptr_t exinf,
 (2) アラームハンドラ機能
 
 CRE_ALM(ID almid, { ATR almatr, intptr_t exinf, ALMHDR almhdr })
+
+(3) イベントフラグ機能
+
+CRE_FLG(ID flgid, { ATR flgatr, FLGPTN iflgptn })
+
+(4) データキュー機能
+
+CRE_DTQ(ID dtqid, { ATR dtqatr, uint_t dtqcnt, void *dtqmb })
 
 以上．

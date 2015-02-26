@@ -63,6 +63,11 @@
 #include <kernel.h>
 
 /*
+ *  システムログ機能のための定義
+ */
+#include <t_syslog.h>
+
+/*
  *  型キャストを行うマクロの定義
  */
 #ifndef CAST
@@ -109,6 +114,8 @@
  *  オブジェクトIDの最小値の定義
  */
 #define TMIN_TSKID		1		/* タスクIDの最小値 */
+#define TMIN_FLGID		1		/* イベントフラグIDの最小値 */
+#define TMIN_DTQID		1		/* データキューIDの最小値 */
 #define TMIN_CYCID		1		/* 周期ハンドラIDの最小値 */
 #define TMIN_ALMID		1		/* アラームハンドラIDの最小値 */
 

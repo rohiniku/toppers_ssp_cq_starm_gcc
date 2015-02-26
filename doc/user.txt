@@ -2,8 +2,8 @@
 		TOPPERS/SSPカーネル
 		ユーザーズマニュアル
 
-		対応バージョン: Release 1.1.1
-		最終更新: 2012年4月17日
+		対応バージョン: Release 1.2.0
+		最終更新: 2013年4月23日
 
 このドキュメントは，TOPPERS/SSPカーネルを使用するために必要な事項を説明
 するものである．
@@ -12,7 +12,7 @@
      TOPPERS/SSP Kernel
          Smallest Set Profile Kernel
  
-     Copyright (C) 2011-2012 by Meika Sugimoto
+     Copyright (C) 2011-2013 by Meika Sugimoto
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -44,21 +44,6 @@
  の責任を負わない．
  
 ----------------------------------------------------------------------
-
-＜重要な注意事項＞
-
-TOPPERS/SSP Release1.1.1は，TOPPERS/SSPについての記述が追加された
-TOPPERS統合仕様書1.4.0に準拠していない．TOPPERS統合仕様書との整合性は
-次期リリースであるTOPPERS/SSP Release1.2.0で行う予定である．
-
-大きく異なるのは以下の2点である．
-・共有スタックの確保方法がTOPPERS統合仕様書ではDEF_STKであるが，
-　TOPPERS/SSP Release1.1.1ではDEF_ICSである．
-
-・実行時優先度の指定
-　TOPPERS統合仕様書ではDEF_EPRであるが，TOPPERS/SSP Release1.1.1では
-　DEF_EPRIである．
-
 
 ○目次
 
@@ -115,7 +100,7 @@ TOPPERS統合仕様書1.4.0に準拠していない．TOPPERS統合仕様書との整合性は
 
 1.1.  TOPPERS/SSPカーネルの位置付け
 
-TOPPERS/SSPカーネルは，TOPPERS/SSPカーネルの仕様に対して，
+TOPPERS/SSPカーネルは，TOPPERS/ASPカーネルの仕様に対して，
 小規模アプリケーション向けに仕様を絞ったものである．最小セットに
 おける"最小"とは，カーネルが使用するROM/RAM使用量を小さくするために
 仕様を最適化することを意味する．
@@ -123,14 +108,14 @@ TOPPERS/SSPカーネルは，TOPPERS/SSPカーネルの仕様に対して，
 提供する機能はμITRON4.0仕様準拠の最低機能をベースとして，一部
 自動車制御用プロファイルの機能を取り込む．
 
-このため，SSPカーネルはSSPカーネルの下位互換でも上位互換でもない．
+このため，SSPカーネルはASPカーネルの下位互換でも上位互換でもない．
 ただし，制約タスク拡張パッケージを適用した場合，SSPカーネルは
 SSPカーネルの上位互換となる．
 
 1.2. TOPPERS/SSPカーネルの仕様
 
 SSPカーネルの仕様の概要については，「TOPPERS新世代カーネル統合仕様書」を
-参照及び，original_static_api.txtを参照のこと．
+参照のこと．
 
 1.3. 既知の問題
 
@@ -202,21 +187,21 @@ SSPカーネルを未サポートのターゲットシステムへポーティングするために必要
 存部のバージョン番号を，SSPカーネル全体のリリース番号とする．ターゲット
 依存部のバージョン番号は，XとYが，それが依存するターゲット非依存部と一
 致している．それに対して，Zは一致しているとは限らない．例えば，ターゲッ
-ト非依存部のバージョン1.0.0に対応するターゲット依存部は，バージョン
+ト非依存部のバージョン1.1.0に対応するターゲット依存部は，バージョン
 1.1.Zの形となる．ターゲット依存部のみがバージョンアップした場合には，Z
 が変更される．
 
 使用する個別パッケージは，次の例のように，ターゲット非依存部の個別パッ
 ケージを展開したのと同じディレクトリで展開する．
 
-	% tar xvfz ssp-1.0.0.tar.gz
-	% tar xvfz ssp_arch_arm_gcc_1.0.2.tar.gz
+	% tar xvfz ssp-1.2.0.tar.gz
+	% tar xvfz ssp_arch_rx_rxc-1.2.0.tar.gz
 
 ターゲット非依存部の個別パッケージには，以下のターゲット依存部が含まれ
-ている．．
+ている．
 
-	target/cq_starm_gcc	デザインウェーブ誌付属Cortex-M3基板
-						（GNU開発環境）用ターゲット依存部
+	target/cq_frk_fm3_gcc	Interface誌付属Cortex-M3基板
+					（GNU開発環境）用ターゲット依存部
 	arch/arm_m_gcc		Cortex-M3（GNU開発環境）用プロセッサ依存部
 
 
@@ -234,7 +219,7 @@ SSPカーネルを用いたシステム構築には，以下のツールが必要である．
 		GNU Make	動作確認：3.81
 
 	TOPPERS新世代カーネル用コンフィギュレータ
-		cfg			動作確認：1.7.0
+		cfg			動作確認：1.9.0
 					※ 1.6.0以前のバージョンでは動作しない．
 
 	ターゲットシステム用のツール（クロス開発環境）
@@ -287,8 +272,8 @@ LFであることを仮定している．それ以外の文字コード，改行コードで動作させる
 場合には，コンフィギュレータのパッケージを，SSPカーネルのソースファイル
 を展開したディレクトリの下に展開する．
 
-	% cd SSP
-	% tar xvfz cfg-1.6.0.tar.gz
+	% cd ssp
+	% tar xvfz cfg-1.9.0.tar.gz
 
 または，コンフィギュレータのパッケージを他のディレクトリに展開し，SSPカー
 ネルのソースファイルを展開したディレクトリからシンボリックリンクをはっ
@@ -531,13 +516,17 @@ libkernel.aする必要があるので注意すること．
 		sample1.cfg				サンプルプログラム(1)のコンフィギュレーションファイル
 
 	extension/
-		time_event.h			タイムイベント管理関連の定義
-		time_event.c			タイムイベント管理
-		time_manage.c			システム時刻管理機能
-		cyclic.h				周期ハンドラ機能関連の定義
-		cyclic.c				周期ハンドラ機能
 		alarm.h					アラームハンドラ機能関連の定義
 		alarm.c					アラームハンドラ機能
+		cyclic.h				周期ハンドラ機能関連の定義
+		cyclic.c				周期ハンドラ機能
+        dataqueue.h             データキュー機能関連の定義
+        dataqueue.c             データキュー機能
+		time_event.h			タイムイベント管理関連の定義
+        eventflag.h             イベントフラグ関連の定義
+        eventflag.c             イベントフラグ機能
+		time_event.c			タイムイベント管理
+		time_manage.c			システム時刻管理機能
 		MANIFEST				拡張パッケージのファイルリスト
 
 	doc/
@@ -545,8 +534,6 @@ libkernel.aする必要があるので注意すること．
 		ssp_spec.txt			TOPPERS/SSPカーネルの仕様概要
 		extension.txt			機能拡張・チューニングガイド
 		porting.txt				ターゲット依存部 ポーティングガイド
-		original_static_api.txt	TOPPPERS/SSPのAPIのTOPPERS統合仕様書
-								との差分箇所の記述
 		configurator.txt		コンフィギュレータ仕様
 		version.txt				変更履歴
 
@@ -1280,14 +1267,13 @@ TOPPERSプロジェクトでは，何からの形でプロジェクトに貢献していただける方，
 	ER ercd = dis_int(INTNO intno)
 	ER ercd = ena_int(INTNO intno)
 
-
 12.2. 静的API一覧
 
 (1) タスク管理機能
 
 	CRE_TSK(ID tskid, { ATR tskatr, intptr_t exinf, TASK task,
 								PRI itskpri, SIZE stksz, STK_T *stk })
-	DEF_EPRI(ID tskid,{ PRI etskpri })
+	DEF_EPR(ID tskid,{ PRI etskpri })
 
 (2) 割込み管理機能
 
@@ -1302,6 +1288,7 @@ TOPPERSプロジェクトでは，何からの形でプロジェクトに貢献していただける方，
 (4) システム構成管理機能
 
 	DEF_ICS({ SIZE istksz, STK_T *istk })
+	DEF_STK({SIZE stksz, STK_T *stk})
 	ATT_INI({ ATR iniatr, intptr_t exinf, INIRTN inirtn })
 	ATT_TER({ ATR teratr, intptr_t exinf, TERRTN terrtn })
 
@@ -1310,5 +1297,9 @@ TOPPERSプロジェクトでは，何からの形でプロジェクトに貢献していただける方，
 	2011年 3月31日	Release	1.0.0		早期リリース
 	2011年11月16日	Release	1.1.0		最初の一般リリース
 	2011年 3月23日	Release	1.1.1		軽微な修正とバグフィックス
+	2013年 4月23日	Release	1.2.0		タスクの起動要求キューイング機能の追加
+                                        DEF_ICSの仕様変更
+                                        DEF_STKの追加
+                                        同期・通信機能拡張パッケージの追加
 
 以上

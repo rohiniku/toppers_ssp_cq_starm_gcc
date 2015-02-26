@@ -1,5 +1,5 @@
 PACKAGE ssp
-VERSION 1.1.1
+VERSION 1.2.0
 
 configure
 MANIFEST
@@ -10,7 +10,6 @@ doc/porting.txt
 doc/user.txt
 doc/version.txt
 doc/configurator.txt
-doc/original_static_api.txt
 
 include/itron.h
 include/log_output.h
@@ -73,6 +72,6 @@ utils/makedep
 utils/makerelease
 
 INCLUDE arch/arm_m_gcc/MANIFEST
-INCLUDE target/cq_starm_gcc/MANIFEST
+INCLUDE target/cq_frk_fm3_gcc/MANIFEST
 INCLUDE arch/gcc/MANIFEST
 INCLUDE extension/MANIFEST

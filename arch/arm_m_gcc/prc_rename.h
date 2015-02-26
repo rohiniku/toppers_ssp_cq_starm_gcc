@@ -14,7 +14,6 @@
 #define default_exc_handler			_kernel_default_exc_handler
 #define default_int_handler			_kernel_default_int_handler
 #define x_config_int				_kernel_x_config_int
-#define x_clear_int					_kernel_x_clear_int
 #define prc_initialize				_kernel_prc_initialize
 #define prc_terminate				_kernel_prc_terminate
 #define bitpat_cfgint				_kernel_bitpat_cfgint
@@ -41,7 +40,6 @@
 #define _default_exc_handler		__kernel_default_exc_handler
 #define _default_int_handler		__kernel_default_int_handler
 #define _x_config_int				__kernel_x_config_int
-#define _x_clear_int				__kernel_x_clear_int
 #define _prc_initialize				__kernel_prc_initialize
 #define _prc_terminate				__kernel_prc_terminate
 #define _bitpat_cfgint				__kernel_bitpat_cfgint

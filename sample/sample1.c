@@ -48,7 +48,9 @@
 #include "kernel_cfg.h"
 #include "syssvc/serial.h"
 
+#ifdef TOPPERS_CQSTARM
 #include "cq_starm.h"  /* ボードのLEDにアクセスするためボード依存部の定義ファイルをインクルード */
+#endif
 #include "sample1.h"
 
 
@@ -79,11 +81,13 @@ void init_task(intptr_t exinf)
 	SYSTIM	stime1, stime2;
 #endif /* TASK_LOOP */
 	
+#ifdef TOPPERS_CQSTARM
         /* LEDはGPIOCの6番PIN。まずはここで点灯させる */
         sil_wrh_mem((void*)GPIO_ODR(GPIOC_BASE), (sil_reh_mem((void*)GPIO_ODR(GPIOC_BASE)) | 0x40));
+#endif
 	/* シリアルポートのオープン */
-	SVC(serial_opn_por(SIO_PORTID));
-	SVC(serial_ctl_por(SIO_PORTID , IOCTL_CRLF));
+	SVC(serial_opn_por(TASK_PORTID));
+	SVC(serial_ctl_por(TASK_PORTID , IOCTL_CRLF));
 	
 	/* 起動メッセージの出力 */
 	syslog(LOG_INFO , "Sample program starts.");
@@ -123,14 +127,17 @@ void main_task(intptr_t exinf)
 	
 
 	/* シリアルポートからの文字受信 */
-	if(serial_rea_dat(SIO_PORTID , &c , 1) > 0)
+	if(serial_rea_dat(TASK_PORTID , &c , 1) > 0)
 	{
 		switch(c)
 		{
 		case 'e':
-		case 'z':
-		case 'Z':
+		case 's':
+		case 'l':
+		case 'p':
+		case 'd':
 		case 'r':
+		case 'z':
 			message[tskno] = c;
 		    break;
 		case '1':
@@ -187,6 +194,10 @@ void task(intptr_t exinf)
 	volatile ulong_t i;
 	const char	*graph[] = { "|", "  +", "    *" };
 	bool_t cont = true;
+	FLGPTN pattern;
+	const FLGPTN flgptn[] = { 0x00000001U, 0x00000002U, 0x00000004U };
+	const FLGPTN allptn = 0x00000007U;
+	intptr_t dtqdata;
 	
 	do
 	{
@@ -205,12 +216,35 @@ void task(intptr_t exinf)
 		{
 		case 'e':
 			cont = false;
-			syslog(LOG_INFO, "#%d#ext_tsk()", tskno);
+			syslog(LOG_INFO, "#%d#terminate task", tskno);
 			break;
+		case 's':
+			SVC(set_flg(FLG1 , flgptn[tskno - 1]));
+			syslog(LOG_INFO, "#%d#set_flg(flgid=%d , mask=%d)",
+									tskno , FLG1 , flgptn[tskno - 1]);
+			break;
+		case 'l':
+			SVC(clr_flg(FLG1 , ~allptn));
+			syslog(LOG_INFO, "#%d#clr_flg(flgid=%d)", tskno , FLG1);
+			break;
+		case 'p':
+			SVC(pol_flg(FLG1 , allptn , TWF_ORW , &pattern));
+			syslog(LOG_INFO, "#%d#pol_flg(flgid=%d , value=%u)", tskno , FLG1 , pattern);
+			break;
+		case 'd':
+			SVC(psnd_dtq(DTQ1 , (intptr_t)tskno));
+			syslog(LOG_INFO, "#%d#snd_dtq(dtqid=%d , value=%u)", tskno , DTQ1 , tskno);
+			break;
+		case 'r':
+			SVC(prcv_dtq(DTQ1 , (intptr_t *)(&dtqdata)));
+			syslog(LOG_INFO, "#%d#rcv_dtq(dtqid=%d , value=%u)", tskno , DTQ1 , dtqdata);
+			break;
+#ifdef CPUEXC1
 		case 'z':
 			syslog(LOG_NOTICE, "#%d#raise CPU exception", tskno);
 			RAISE_CPU_EXCEPTION;
 			break;
+#endif /* CPUEXC1 */
 		default:
 			break;
 		}
@@ -231,6 +265,7 @@ void main_task_cychdr(intptr_t exinf)
 	ID tskid = (ID)exinf;
 	
 	(void)iact_tsk(tskid);
+#ifdef TOPPERS_CQSTARM
         /* LEDの点滅処理 */
         /* この関数は100ms周期ハンドラ関数なので、そこで10回ごとにLEDの点灯状態を反転させる。 */
         /* つまり、1秒点灯、1秒消灯をここで実現する。 */
@@ -241,6 +276,7 @@ void main_task_cychdr(intptr_t exinf)
             count = 0;
           }
         }
+#endif
 }
 
 void cyclic_handler(intptr_t exinf)
@@ -248,7 +284,7 @@ void cyclic_handler(intptr_t exinf)
 	syslog(LOG_INFO , "Cyclic handler is raised.");
 }
 
-#ifdef TEST_EXC
+#ifdef CPUEXC1
 void exc_handler(void *p_excinf)
 {
 	syslog(LOG_INFO , "CPU exception handler.");
@@ -256,5 +292,5 @@ void exc_handler(void *p_excinf)
 	
 	(void)ext_ker();
 }
-#endif /* TEST_EXC */
+#endif /* CPUEXC1 */
 

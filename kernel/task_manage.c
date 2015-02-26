@@ -91,6 +91,10 @@ act_tsk(ID tskid)
 		}
 		ercd = E_OK;
 	}
+	else if(!actque_test(itskpri)) {
+		actque_set(itskpri);
+		ercd = E_OK;
+	}
 	else {
 		ercd = E_QOVR;
 	}
@@ -125,6 +129,10 @@ iact_tsk(ID tskid)
 		if(make_active(itskpri)) {
 			reqflg = true;
 		}
+		ercd = E_OK;
+	}
+	else if(!actque_test(itskpri)) {
+		actque_set(itskpri);
 		ercd = E_OK;
 	}
 	else {

@@ -72,6 +72,11 @@ extern const ID	tmax_tskid;
 extern volatile uint_t	ready_primap;
 
 /*
+ *  起動要求キューイングのビットマップ
+ */
+extern uint_t	actque_bitmap;
+
+/*
  *  ディスパッチ／タスク例外処理ルーチン起動要求フラグ
  *
  *  割込みハンドラ／CPU例外ハンドラの出口処理に，ディスパッチまたは
@@ -185,5 +190,31 @@ extern uint_t get_ipri_self(ID tskid);
  *  tskidはTMIN_TSKID以上，tmax_tskid以下の値で指定しなければならない．
  */
 extern uint_t get_ipri(ID tskid);
+
+
+/* 起動要求キューイングビットマップの操作 */
+#define ACTQUE_BIT(ipri)			(1U << (ipri))
+
+/* 起動要求キューイングのセット */
+Inline
+void actque_set(uint_t ipri)
+{
+	actque_bitmap |= ACTQUE_BIT(ipri);
+}
+
+/* 起動要求キューイングのクリア */
+Inline
+void actque_clear(uint_t ipri)
+{
+	actque_bitmap &= ~ACTQUE_BIT(ipri);
+}
+
+/* 起動要求キューイング数のチェック */
+Inline
+bool_t actque_test(uint_t ipri)
+{
+	return ((actque_bitmap & ACTQUE_BIT(ipri)) != 0U);
+}
+
 
 #endif /* TOPPERS_TASK_H */

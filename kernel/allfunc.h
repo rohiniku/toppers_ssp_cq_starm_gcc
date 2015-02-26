@@ -105,4 +105,21 @@
 /* time_manage.c */
 #define TOPPERS_get_tim
 
+/* eventflag.c */
+#define TOPPERS_iniflg
+#define TOPPERS_flgcnd
+#define TOPPERS_set_flg
+#define TOPPERS_iset_flg
+#define TOPPERS_clr_flg
+#define TOPPERS_pol_flg
+
+/* dataqueue.c */
+#define TOPPERS_dtqini
+#define TOPPERS_dtqenq
+#define TOPPERS_dtqdeq
+#define TOPPERS_psnd_dtq
+#define TOPPERS_ipsnd_dtq
+#define TOPPERS_prcv_dtq
+
+
 #endif /* TOPPERS_ALLFUNC_H */

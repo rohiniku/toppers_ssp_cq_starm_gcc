@@ -87,6 +87,11 @@ uint_t runtsk_ipri;
 volatile uint_t	ready_primap;
 
 /*
+ *  起動要求キューイングのビットマップ
+ */
+uint_t	actque_bitmap;
+
+/*
  *  タスクディスパッチ起動要求フラグ
  */
 bool_t	reqflg;
@@ -278,6 +283,9 @@ initialize_task(void)
 	runtsk_curpri = TSKPRI_NULL;
 	runtsk_ipri = TSKPRI_NULL;
 	
+	/* 起動要求キューイングの初期化 */
+	actque_bitmap = 0U;
+	
 	/* 割込み禁止フラグの初期化 */
 	disdsp = false;
 }
@@ -381,6 +389,13 @@ run_task(uint_t ipri)
 		primap_clear(next_pri);
 		
 		cont = false;
+		
+		/* タスク起動要求キューイングのチェック */
+		if (actque_test(next_pri)) {
+			actque_clear(next_pri);
+			(void) make_active(next_pri);
+		}
+		
 		/* いずれかのタスクが実行可能状態になっているか */
 		if(!primap_empty())
 		{
