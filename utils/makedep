@@ -40,7 +40,7 @@
 #  @(#) $Id: makedep 1524 2009-04-29 03:37:27Z ertl-hiro $
 # 
 
-require "getopt.pl";
+use Getopt::Std;	#require "getopt.pl";のかわりにGetopt::Stdを使用する
 
 #  オプションの定義
 #
@@ -58,7 +58,7 @@ require "getopt.pl";
 #
 #  オプションの処理
 #
-Getopt("COTDR");
+getopt("COTDR");	#Getopt();のかわりにgetopt()を使用する
 
 $cc_path = $opt_C;
 $cc_opts = $opt_O;

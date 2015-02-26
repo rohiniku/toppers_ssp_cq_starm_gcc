@@ -40,7 +40,7 @@
 #  @(#) $Id: configure 1733 2010-02-03 03:50:52Z ertl-hiro $
 # 
 
-require "getopt.pl";
+use Getopt::Std;		#require "getopt.pl";のかわりにGetopt::Stdを使用する
 
 #  オプションの定義
 #
@@ -74,7 +74,7 @@ require "getopt.pl";
 #
 #  オプションの処理
 #
-Getopt("TAaULDltmdpg");
+getopt("TAaULDltmdpg");		#getopt();のかわりにgetopt()を使用する
 
 #
 #  変数の初期化
