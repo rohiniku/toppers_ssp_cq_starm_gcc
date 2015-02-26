@@ -3,10 +3,12 @@ TOPPERS/SSP build on my Mac OS X
 
 Mac OS X環境でTOPPERS/SSPの「DesignWave誌附属CQ_STARM基板用簡易パッケージ」をビルドできるようにする。
 
-TOPPERS/SSPは https://www.toppers.jp/download.cgi/ssp_cq_starm_gcc-20120607.tar.gz を使用。非依存部のバージョンが1.1.1とあります。非依存部は1.2.1(2014-3-7)が最新のようなので、いずれ新しいバージョンを取り込んでみたいと思います。
+TOPPERS/SSPは https://www.toppers.jp/download.cgi/ssp_cq_starm_gcc-20120607.tar.gz (非依存部のバージョン1.1.1)をベースに、非依存部の1.2.1(2014-3-7)まで取り込みました。
+非依存部は1.2.0 https://www.toppers.jp/download.cgi/ssp-1.2.0.tar.gz と、1.2.1 https://www.toppers.jp/download.cgi/ssp-1.2.1.tar.gz を順に取り込みました。
+それぞれのバージョンで、sample1.cでのLチカが動作することを確認しました。
 
 ボードは http://www.cqpub.co.jp/dwm/Contents/0126/dwm012600520.pdf に紹介があります。CQ出版のDesignWave誌2008年5月号の付録です。STM32F103VBT6が載ってます。
-
+このボードを使ったときだけ、ボード上のLEDをLチカさせるよう、サンプルコード(sample/sample1.c)を修正しています。
 
 あらかじめ、以下のインストールが完了していること。
 
