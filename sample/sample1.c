@@ -48,6 +48,7 @@
 #include "kernel_cfg.h"
 #include "syssvc/serial.h"
 
+#include "cq_starm.h"  /* ボードのLEDにアクセスするためボード依存部の定義ファイルをインクルード */
 #include "sample1.h"
 
 
@@ -78,6 +79,8 @@ void init_task(intptr_t exinf)
 	SYSTIM	stime1, stime2;
 #endif /* TASK_LOOP */
 	
+        /* LEDはGPIOCの6番PIN。まずはここで点灯させる */
+        sil_wrh_mem((void*)GPIO_ODR(GPIOC_BASE), (sil_reh_mem((void*)GPIO_ODR(GPIOC_BASE)) | 0x40));
 	/* シリアルポートのオープン */
 	SVC(serial_opn_por(SIO_PORTID));
 	SVC(serial_ctl_por(SIO_PORTID , IOCTL_CRLF));
@@ -228,6 +231,16 @@ void main_task_cychdr(intptr_t exinf)
 	ID tskid = (ID)exinf;
 	
 	(void)iact_tsk(tskid);
+        /* LEDの点滅処理 */
+        /* この関数は100ms周期ハンドラ関数なので、そこで10回ごとにLEDの点灯状態を反転させる。 */
+        /* つまり、1秒点灯、1秒消灯をここで実現する。 */
+        {
+          static uint_t count = 0;
+          if (++count >= 10) {
+            sil_wrh_mem((void*)GPIO_ODR(GPIOC_BASE), (sil_reh_mem((void*)GPIO_ODR(GPIOC_BASE)) ^ 0x40));
+            count = 0;
+          }
+        }
 }
 
 void cyclic_handler(intptr_t exinf)
