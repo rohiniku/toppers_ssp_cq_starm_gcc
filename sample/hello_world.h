@@ -42,7 +42,9 @@
 #include "target_test.h"
 
 #define TASK_PRIORITY			(1)
+#ifndef STACK_SIZE
 #define STACK_SIZE				(128)
+#endif
 
 #ifndef TOPPERS_MACRO_ONLY
 

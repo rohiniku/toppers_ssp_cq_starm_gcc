@@ -75,14 +75,14 @@
 /*
  *  データキューへのデータ送信
  */
-static void
+void
 enqueue_data(intptr_t* const data , uint8_t* const tail , const uint8_t size , const intptr_t sdata);
 
 /*
  *  データキューからのデータ受信
  */
-static void
-dequeue_data(intptr_t* const data , uint8_t* const head , const size , intptr_t* rdata);
+void
+dequeue_data(intptr_t* const data , uint8_t* const head , const uint8_t size , intptr_t* rdata);
 
 
 /*
@@ -143,7 +143,7 @@ data_empty(uint8_t count)
 
 #ifdef TOPPERS_dtqenq
 
-static void
+void
 enqueue_data(intptr_t* const data , uint8_t* const tail , const uint8_t size , const intptr_t sdata)
 {
 	data[*tail] = sdata;
@@ -153,15 +153,15 @@ enqueue_data(intptr_t* const data , uint8_t* const tail , const uint8_t size , c
 	}
 }
 
-#endif /* TOPPERS_dtqsnd */
+#endif /* TOPPERS_dtqenq */
 
 /*
  *  送信待ちキューの先頭タスクからのデータ受信
  */
 #ifdef TOPPERS_dtqdeq
 
-static void
-dequeue_data(intptr_t* const data , uint8_t* const head , const size , intptr_t* rdata)
+void
+dequeue_data(intptr_t* const data , uint8_t* const head , const uint8_t size , intptr_t* rdata)
 {
 	*rdata = data[*head];
 	(*head)++;
@@ -171,7 +171,7 @@ dequeue_data(intptr_t* const data , uint8_t* const head , const size , intptr_t*
 	
 }
 
-#endif /* TOPPERS_dtqrcv */
+#endif /* TOPPERS_dtqdeq */
 
 /*
  *  データキューへの送信（ポーリング）

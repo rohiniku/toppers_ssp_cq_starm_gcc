@@ -2,8 +2,8 @@
 		TOPPERS/SSPカーネル
 		変更履歴
 
-		対応バージョン: Release 1.2.0
-		最終更新: 2012年12月28日
+		対応バージョン: Release 1.2.1
+		最終更新: 2014年 3月 6日
 
 このドキュメントは，TOPPERS/SSPカーネルのRelease 1.0.0以降の変更履歴を，
 新しい方から順に記述したものである．
@@ -12,7 +12,9 @@
      TOPPERS/SSP Kernel
          Smallest Set Profile Kernel
  
-     Copyright (C) 2011-2012 by Meika Sugimoto
+     Copyright (C) 2011-2013 by Meika Sugimoto
+     Copyright (C) 2014 by Naoki Saito
+                 Nagoya Municipal Industrial Research Institute, JAPAN
  
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
  ア（本ソフトウェアを改変したものを含む．以下同じ）を使用・複製・改
@@ -43,6 +45,24 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
+----------------------------------------------------------------------
+
+		TOPPERS/SSPカーネル
+		Release 1.2.0 から 1.2.1 への変更点
+
+・ターゲット依存部の要修正箇所（1.1.1 → 1.2.0）
+    ターゲット依存部への影響はないため，修正は不要である．
+・CRE_FLG の iflgptn に対するチェック追加およびエラー条件を変更
+・イベントフラグのビットパターンに対するビット数定義を追加
+・dequeue_data関数の引数型指定抜けの修正
+・(toppers-users 4129)で指摘事項の修正
+    ・sample1 の修正
+    ・enqueue_data, dequeue_data を static 関数から通常の関数へ変更
+    ・Makefile.kernel の修正
+・sample1 のアプリの説明文をsample1.c のコメントとして追加
+・システムコンフィギュレーションファイルで serial.cfg を INCLUDE しない
+  場合に TARGET_NAME が未定義となる問題の修正(banner.tf)
+
 ----------------------------------------------------------------------
 
 		TOPPERS/SSPカーネル

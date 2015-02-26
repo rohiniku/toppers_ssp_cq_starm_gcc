@@ -31,6 +31,11 @@ $NL$
 #endif /* TARGET_COPYRIGHT */$NL$
 $NL$
 $NL$
+#ifndef TARGET_NAME$NL$
+#define TARGET_NAME$NL$
+#endif /* TARGET_NAME */$NL$
+$NL$
+$NL$
 const char banner[] = $BANNER$;$NL$
 const int32_t banner_size = sizeof(banner) / sizeof(banner[0]);
 $NL$

@@ -52,17 +52,17 @@
  *  ログ出力
  */
 #define LOGPUT(str)	\
-	serial_wri_dat(SIO_PORTID , (const char_t *)(str) , sizeof(str)/sizeof(char_t))
+	serial_wri_dat(TASK_PORTID , (const char_t *)(str) , sizeof(str)/sizeof(char_t))
 
 /*
  *  表示するメッセージ
  */
-#define MSGHELLO ("Hello World.!\n")
+#define MSGHELLO (const char_t *)("Hello World.!\n")
 
 void task(intptr_t exinf) {
 	
 	/* メッセージの表示 */
-	(void)serial_wri_dat(SIO_PORTID , MSGHELLO , sizeof(MSGHELLO)/sizeof(char_t));
+	(void)serial_wri_dat(TASK_PORTID , MSGHELLO , sizeof(MSGHELLO)/sizeof(char_t));
 	
 	/* カーネルの終了 */
 	(void)ext_ker();

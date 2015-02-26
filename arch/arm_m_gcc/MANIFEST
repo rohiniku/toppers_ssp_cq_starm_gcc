@@ -1,5 +1,4 @@
-PACKAGE ssp_arch_arm_m_gcc
-VERSION 1.2.0
+PACKAGE ssp
 
 MANIFEST
 Makefile.prc

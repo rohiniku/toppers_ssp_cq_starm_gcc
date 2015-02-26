@@ -58,7 +58,7 @@
 /*
  *  非タスクコンテキスト用のスタック初期値
  */
-#define TOPPERS_ISTKPT(istk, istksz) ((STK_T *)((istk) + (istksz)))
+#define TOPPERS_ISTKPT(istk, istksz) ((STK_T *)((char_t *)(istk) + (istksz)))
 
 #endif /* TOPPERS_MACRO_ONLY */
 

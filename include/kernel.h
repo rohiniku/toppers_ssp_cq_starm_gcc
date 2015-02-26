@@ -226,12 +226,19 @@ extern ER		get_tim(SYSTIM *p_systim);
 #define TKERNEL_MAKER	UINT_C(0x0118)	/* カーネルのメーカーコード */
 #define TKERNEL_PRID	UINT_C(0x0007)	/* カーネルの識別番号 */
 #define TKERNEL_SPVER	UINT_C(0xf511)	/* カーネル仕様のバージョン番号 */
-#define TKERNEL_PRVER	UINT_C(0x1020)	/* カーネルのバージョン番号 */
+#define TKERNEL_PRVER	UINT_C(0x1021)	/* カーネルのバージョン番号 */
 
 /*
  *  キューイング回数の最大値
  */
 #define TMAX_ACTCNT		UINT_C(1)		/* 起動要求キューイング数の最大値 */
+
+/*
+ *  ビットパターンのビット数
+ */
+#ifndef TBIT_FLGPTN                     /* イベントフラグのビット数 */
+#define TBIT_FLGPTN             (sizeof(FLGPTN) * CHAR_BIT)
+#endif /* TBIT_FLGPTN */
 
 /*
  *  メモリ領域確保のためのマクロ

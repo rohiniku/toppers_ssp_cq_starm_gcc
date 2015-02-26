@@ -38,7 +38,8 @@
 #  @(#) $Id: makerelease 1866 2010-07-25 13:19:17Z ertl-hiro $
 # 
 
-require 'getcwd.pl';
+use Cwd;
+
 
 $cwd = getcwd();
 $cwd =~ s/^.*[\/\\]([^\/\\]+)$/$1/;

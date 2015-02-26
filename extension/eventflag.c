@@ -98,7 +98,7 @@ void initialize_eventflag(void)
 	}
 }
 
-#endif /* TOPPERF_iniflg */
+#endif /* TOPPERS_iniflg */
 
 /*
  *  イベントフラグ条件が成立しているかのチェック
@@ -151,7 +151,7 @@ set_flg(ID flgid, FLGPTN setptn)
 }
 
 
-#endif /* TOPPERS_flgcnd */
+#endif /* TOPPERS_set_flg */
 
 /*
  *  イベントフラグのセット（非タスクコンテキスト用）

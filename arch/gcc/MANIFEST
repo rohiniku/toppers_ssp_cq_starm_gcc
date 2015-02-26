@@ -1,5 +1,4 @@
 PACKAGE ssp
-VERSION 1.2.0
 
 MANIFEST
 tool_stddef.h

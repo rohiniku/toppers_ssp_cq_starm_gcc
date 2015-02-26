@@ -2,8 +2,8 @@
 		TOPPERS/SSPカーネル
 		コンフィギュレータ仕様
 
-		対応バージョン: Release 1.2.0
-		最終更新: 2012年 11月 26日
+		対応バージョン: Release 1.2.1
+		最終更新: 2013年 9月 16日
 
 このドキュメントは，TOPPERS/SSPカーネルのコンフィギュレータが標準的に生
 成すべきファイルの内容について解説したものである．ターゲット依存に生成
@@ -16,7 +16,7 @@
 
  Copyright (C) 2005-2010 by Embedded and Real-Time Systems Laboratory
              Graduate School of Information Science, Nagoya Univ., JAPAN
- Copyright (C) 2012 by Naoki Saito
+ Copyright (C) 2012,2013 by Naoki Saito
              Nagoya Municipal Industrial Research Institute, JAPAN
 
  上記著作権者は，以下の(1)〜(4)の条件を満たす場合に限り，本ソフトウェ
@@ -48,7 +48,7 @@
  アの利用により直接的または間接的に生じたいかなる損害に関しても，そ
  の責任を負わない．
  
- $Id: configurator.txt 489 2012-11-26 06:29:11Z nmir-saito $
+ $Id: configurator.txt 600 2014-03-06 10:00:01Z nmir-saito $
 ----------------------------------------------------------------------
 
 ○目次
@@ -676,10 +676,8 @@ FLGPTN _kernel_flgcb_flgptn[TNUM_FLGID];
 ＊パス2で検出するもの
 ・tskatrが（[[TA_CLR]|[TA_NULL]）でない場合（E_RSATR）
 	※ TA_CLR と TA_NULL を同時に指定した場合，TA_CLR のみを指定した場合と同様に振る舞う
+・iflgptn がFLGPTN に格納できない(iflgptnの値がFLGPTN型の最大値よりも大きい)場合（E_PAR） 
 
-なお，iflgptn の値として FLGPTN 型の最大値よりも大きな値を指定した場合のチェックは行わない．
-（大抵の場合，コンパイラが警告を出力することが想定される）
-その場合，初期値として指定した値の一部が失われることになるため，注意が必要である．
 
 (5-3) データキューに関する定義
 

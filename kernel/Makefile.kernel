@@ -66,9 +66,9 @@ task_manage = act_tsk.o iact_tsk.o
 
 time_manage = get_tim.o
 
-eventflag = eventflag.o
+eventflag = iniflg.o set_flg.o iset_flg.o clr_flg.o pol_flg.o
 
-dataqueue = dataqueue.o
+dataqueue = dtqini.o dtqenq.o dtqdeq.o psnd_dtq.o ipsnd_dtq.o prcv_dtq.o
 
 cyclic = cycini.o sta_cyc.o stp_cyc.o cyccal.o
 

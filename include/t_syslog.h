@@ -107,7 +107,7 @@ extern "C" {
  *  ログ情報のデータ構造
  */
 
-#define TMAX_LOGINFO	4
+#define TMAX_LOGINFO	6
 
 typedef struct {
 	uint_t		logtype;				/* ログ情報の種別 */

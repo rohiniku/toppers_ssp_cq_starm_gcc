@@ -472,6 +472,13 @@ $ イベントフラグID番号の最大値
 const ID _kernel_tmax_flgid = (TMIN_FLGID + TNUM_FLGID - 1);$NL$
 $NL$
 
+$	// iflgptnがFLGPTNに格納できない場合（E_PAR） 
+$FOREACH flgid FLG.ORDER_LIST$
+	$IF (FLG.IFLGPTN[flgid] & ~((1 << TBIT_FLGPTN) - 1)) != 0$ 
+		$ERROR FLG.TEXT_LINE[flgid]$E_PAR: $FORMAT(_("too large %1% `%2%\' of `%3%\' in %4%"), "iflgptn", FLG.IFLGPTN[flgid], flgid, "CRE_FLG")$$END$ 
+	$END$ 
+$END$
+
 $ イベントフラグ初期化ブロックの生成
 $IF LENGTH(FLG.ID_LIST)$
 
